@@ -2,7 +2,8 @@ from flask import Flask, render_template, redirect, request, jsonify, session
 from flask_socketio import SocketIO, join_room, send
 import random
 import string
-
+import eventlet
+from werkzeug.middleware.proxy_fix import ProxyFix
 # --------------------------- #
 #        Game Models          #
 # --------------------------- #
@@ -178,9 +179,12 @@ class Room:
 #        Flask Setup          #
 # --------------------------- #
 
+eventlet.monkey_patch()
+
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.config['SECRET_KEY'] = 'jciehgevuiosgmlcp89p98w0pmhv89p3w'
-socketio = SocketIO(app, manage_session=True)
+socketio = SocketIO(app, manage_session=True, async_mode='eventlet', logger=True, engineio_logger=True)
 
 rooms = {}    # name -> Room
 players = {}  # id -> Player
