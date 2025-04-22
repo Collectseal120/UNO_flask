@@ -122,10 +122,7 @@ class Game:
             return self.deal_first_card(next_player)
         else:
             return first_card
-            
 
-                    
-    
     def deal_cards(self, num_cards):
         for i in range(num_cards):
             for player in self.room.players:
@@ -141,6 +138,12 @@ class Game:
         next_player = self.next_turn()
         if next_player:
             socketio.emit('next_turn', {'player': next_player.id}, room=self.room.name)
+    def suhffle_new_deck(self):
+        new_deck = self.played_cards[:-1]
+        self.played_cards = [self.played_cards[-1]]
+        new_deck = [{'color': card['color'], 'value': card['value'], 'isWild': card['isWild']} for card in new_deck]
+        random.shuffle(new_deck)
+        self.deck.cards = new_deck + self.deck.cards
     def to_json(self):
         return {
             "room": self.room.name,
@@ -180,12 +183,14 @@ class Room:
 #        Flask Setup          #
 # --------------------------- #
 
-eventlet.monkey_patch()
+#eventlet.monkey_patch()
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.config['SECRET_KEY'] = 'jciehgevuiosgmlcp89p98w0pmhv89p3w'
+
 socketio = SocketIO(app, manage_session=True, async_mode='eventlet', logger=True, engineio_logger=True)
+#socketio = SocketIO(app, manage_session=True)
 
 rooms = {}    # name -> Room
 players = {}  # id -> Player
@@ -265,8 +270,8 @@ def handle_play_card(data):
     if not canPlay:
         return False
 
-    # Process each card in the selected order
-    if cards[0].get('value') in ['skip', 'draw_two', 'wild_draw_four']:
+
+    if cards[0].get('value') in ['draw_two', 'wild_draw_four']:
         next_player = room.game.next_turn()
     for card in cards:
         if card.get('value') == 'reverse':
@@ -376,10 +381,12 @@ def draw_card():
         return jsonify({'error': 'You can only draw 3 cards in a row'}), 403
 
 
+    room.game.suhffle_new_deck() if len(room.game.deck.cards) < 10 else None
 
     card = room.game.deck.draw_card()
     player.hand.append(card) if card else None
     room.game.round_draw_amount += 1
+
     return jsonify({'card': card}) if card else jsonify({'error': 'Deck is empty'})
 
 @app.route('/start_game', methods=['POST'])
@@ -430,7 +437,7 @@ def get_turn():
         return jsonify({'error': 'Invalid player or room'}), 403
 
     room = rooms[player.room]
-    return jsonify({'current_turn_player': room.game.current_player().username, 'my_turn': player.id == room.game.current_player().id})
+    return jsonify({'current_turn_player': room.game.current_player().id, 'my_turn': player.id == room.game.current_player().id})
 
 
 # --------------------------- #
@@ -439,3 +446,4 @@ def get_turn():
 
 if __name__ == '__main__':
     socketio.run(app, host="0.0.0.0", port=os.environ.get("PORT", 5000))
+    #socketio.run(app, debug=True)

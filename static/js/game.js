@@ -40,6 +40,31 @@ function rejoinRoom() {
             console.log('Failed to get room data');
         }
     })();
+
+    fetch('/get_turn', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to fetch turn: ' + response.statusText);
+        }
+        return response.json();
+    }).then(data => {
+        const drawCardButton = document.getElementById('draw-card-button');
+        const playCardButton = document.getElementById('play-card-button');
+        if (data.hasOwnProperty('my_turn') && data.my_turn) {
+            drawCardButton.disabled = false;
+            playCardButton.disabled = false;
+        } else {
+            drawCardButton.disabled = true;
+            playCardButton.disabled = true;
+        }
+
+    }).catch(error => {
+        console.error('Error:', error);
+    });
 }
 
 // Attach the drawCard function to a button
@@ -244,7 +269,7 @@ function createCardElement(card) {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.className = 'card-checkbox';
-    checkbox.style.visibility = 'hidden';
+    //checkbox.style.visibility = 'hidden';
     cardElement.appendChild(checkbox);
 
     cardElement.setAttribute('data-value-card', JSON.stringify(card));
@@ -258,8 +283,10 @@ function createCardElement(card) {
                 console.log('Card selected:', card);
                 cardElement.classList.add("selected-card")
             } else {
+                card.isSelected = false;
                 checkbox.checked = false;
-                console.error('You can only select cards of the same value');
+                console.log('Card selection invalid, already selected:', selectedCards);
+                console.log('HandCards:', handCards);
             }
         } else {
             card.isSelected = false;
@@ -290,7 +317,7 @@ function createCardElement(card) {
 
 document.getElementById('play-card-button').addEventListener('click', function() {
     console.log(handCards);
-    const selectedCards = handCards.filter(card => card.isSelected);
+    let selectedCards = handCards.filter(card => card.isSelected);
     if (selectedCards.length > 0) {
         const selectedOrder = selectedCards.sort((a, b) => a.selectionOrder - b.selectionOrder);
         console.log('Selected cards in order:', selectedOrder);
@@ -358,13 +385,17 @@ socket.on('card_played', (data) => {
 socket.on('next_turn', (data) => {
     const playerContainer = document.getElementById('player-container')
     const playerBodys = Array.from(playerContainer.children);
+
     playerBodys.forEach(playerBody =>{
-        playerBody.classList.remove('player-turn');
+        console.log(playerBody.dataset.id == data.player);
         if(playerBody.dataset.id == data.player){
             playerBody.classList.add('player-turn');
         }
+        else{
+            playerBody.classList.remove('player-turn');
+        }
     });
-    (async () => {
+    /*(async () => {
         const roomData = await getRoomData();
         console.log(roomData);
         if (roomData) {
@@ -372,7 +403,7 @@ socket.on('next_turn', (data) => {
         } else {
             console.log('Failed to get room data');
         }
-    })();
+    })();*/
     fetch('/get_turn', {
         method: 'POST',
         headers: {
@@ -393,6 +424,15 @@ socket.on('next_turn', (data) => {
             drawCardButton.disabled = true;
             playCardButton.disabled = true;
         }
+        const playerContainer = document.getElementById('player-container')
+        const playerBodys = Array.from(playerContainer.children);
+
+        playerBodys.forEach(playerBody =>{
+            console.log(playerBody.dataset.id == data.player);
+            if(playerBody.dataset.id == data.player){
+                playerBody.style.backgroundColor = 'green';
+            }
+        });
     }).catch(error => {
         console.error('Error:', error);
     });
