@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNO</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
+</head>
+<body>
+    <main>
+        <div id="game-container">
+            <button id="start-game">Start</button>
+            </div>
+            <div id="player-container"></div>
+            <div id="game-info">
+                <p id="current-player">Current Player: </p>
+                <p id="top-card"></p>
+            </div>
+            <div id="player-controls">
+                <div id="player-hand">
+                    <div id="hand-cards">
+                        
+                    </div>
+                </div>
+                <div id="action-buttons">
+                    <button id="draw-card-button" class="action-button">Draw Card</button>
+                    <button id="play-card-button" class="action-button">Play Card</button>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+        <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+    </main>
+</body>
+</html>

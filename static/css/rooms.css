@@ -1,0 +1,158 @@
+/* rooms.css */
+
+/* General body styling */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to bottom, #b22222, #ff6347, #b22222); /* Red gradient with lighter red in the center */
+    color: #fff;
+    text-align: center;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* UNO logo styling */
+.logo {
+    border: 5px solid gold;
+    border-radius: 50%;
+    box-shadow: 0 0 15px gold;
+    position: fixed;
+    z-index: -1;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+}
+.square{
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px gold; /* Golden glow effect */
+    width: 300px;
+    margin: 20px;
+}
+.square h2 {
+    margin: 0 0 10px;
+    color: gold; /* Golden text for the heading */
+}
+.room-container{
+    display: flex;
+    flex-direction: column;
+    align-items: normal;
+    justify-content: normal;
+    width: 300px;
+    height: 70%;
+}
+
+
+#container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+}
+
+/* Form styling */
+form {
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px gold; /* Golden glow effect */
+    width: 300px;
+}
+
+/* Heading styling */
+form h3 {
+    margin: 0 0 10px;
+    color: gold; /* Golden text for the heading */
+}
+
+.bg-filter{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    filter: blur(5px);
+    z-index: -1;
+}
+
+
+/* Input field styling */
+form input[type="text"] {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 2px solid gold;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #b22222;
+    font-size: 16px;
+}
+
+/* Button styling */
+form button {
+    width: 100%;
+    padding: 10px;
+    background-color: gold;
+    border: none;
+    border-radius: 5px;
+    color: #b22222;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+}
+
+form button:hover {
+    background-color: #ffc400; /* Lighter golden color on hover */
+}
+
+form button:active {
+    background-color: #b88d00; /* Darker golden color on active */
+}
+
+/* Room list styling */
+#room-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    width: 300px;
+    overflow: scroll;
+}
+
+#room-list li {
+    margin-bottom: 10px;
+}
+
+#room-list button {
+    width: 100%;
+    padding: 10px;
+    background-color: gold;
+    border: none;
+    border-radius: 5px;
+    color: #b22222;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+    display: flex;
+    justify-content: space-between;
+}
+#room-list button:disabled  {
+    background-color: rgba(192, 163, 0, 0.785);
+    cursor: not-allowed;
+}
+#room-list button:not(:disabled):hover {
+    background-color: #ffc400; /* Lighter golden color on hover */
+}
+
+#room-list button:not(:disabled):active {
+    background-color: #b88d00; /* Darker golden color on active */
+}

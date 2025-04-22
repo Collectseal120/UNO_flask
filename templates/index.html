@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNO Username</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <img src="https://uno-io.vercel.app/static/media/logo.ada72dbc.png" alt="UNO Logo" class="logo" width="400" height="400">
+    <form method="POST" action="/create_user">
+        <h3>Username:</h3>
+        <input type="text" id="username" name="username">
+        <button type="submit">Submit</button>
+    </form>
+</body>
+
+</html>

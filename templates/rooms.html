@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNO Rooms</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rooms.css') }}">
+
+</head>
+<body>
+    <main style="width: 100%; height: 100vh;">
+        <div class="bg-filter">
+            <img src="https://uno-io.vercel.app/static/media/logo.ada72dbc.png" alt="UNO Logo" class="logo" width="400" height="400">
+        </div>
+        <div id="container">
+            <form id="create-room-form">
+                <h3>Create Room: </h3>
+                <input type="text" id="room-name" name="room_name" placeholder="Room Name" required>
+                <button type="button" id="create-room-button">Create Room</button>
+            </form>
+            <div class="square room-container">
+                <h2>Rooms: </h2>
+                <ul id="room-list">
+                </ul>
+            </div>
+        </div>
+        <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+        <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    </main>
+</body>
+</html>
