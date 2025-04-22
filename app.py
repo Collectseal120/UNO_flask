@@ -3,6 +3,7 @@ from flask_socketio import SocketIO, join_room, send
 import random
 import string
 import eventlet
+import os
 from werkzeug.middleware.proxy_fix import ProxyFix
 # --------------------------- #
 #        Game Models          #
@@ -437,4 +438,4 @@ def get_turn():
 # --------------------------- #
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app, host="0.0.0.0", port=os.environ.get("PORT", 5000))
