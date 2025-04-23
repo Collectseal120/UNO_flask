@@ -395,15 +395,17 @@ socket.on('next_turn', (data) => {
             playerBody.classList.remove('player-turn');
         }
     });
-    /*(async () => {
+    (async () => {
         const roomData = await getRoomData();
         console.log(roomData);
         if (roomData) {
-            createPlayers(roomData.players)
+            roomData.players.forEach(player => {
+            updatePlayerData(player.id, player);
+        });
         } else {
             console.log('Failed to get room data');
         }
-    })();*/
+    })();
     fetch('/get_turn', {
         method: 'POST',
         headers: {
@@ -475,14 +477,14 @@ const offsets = {
     4: '-1.0turn',
 };
 
-function createPlayers(players){
+function createPlayers(players) {
     clearPlayers();
     let rotatedPlayers = players;
     const total = players.length;
     const offset = offsets[total] || '0.5turn';
     (async () => {
         const playerData = await getPlayerData();
-        console.log("test: ",playerData);
+        console.log("test: ", playerData);
         if (playerData) {
             rotatedPlayers = rotatePlayers(players, playerData.id);
 
@@ -492,33 +494,31 @@ function createPlayers(players){
                 const playerBody = document.createElement("div");
                 playerBody.dataset.id = player.id;
                 playerBody.style.setProperty('--r-offset', offset);
-                playerBody.classList.add('player-body')
-                playerBody.style.setProperty('--i', i+1);
-                const playerImage = document.createElement("img")
-                const playerName = document.createElement("span")
+                playerBody.classList.add('player-body');
+                playerBody.style.setProperty('--i', i + 1);
+                const playerImage = document.createElement("img");
+                const playerName = document.createElement("span");
                 playerName.classList.add("name-tag");
 
                 const playerElement = document.createElement("div");
 
                 const playerCardAmountImage = document.createElement("img");
-                playerCardAmountImage.src = "https://i.ibb.co/KcvmBbgc/uno-back-face.png"
+                playerCardAmountImage.src = "https://i.ibb.co/KcvmBbgc/uno-back-face.png";
                 playerCardAmountImage.classList.add("card-amount-image");
 
                 const playerCardAmountImage2 = document.createElement("img");
-                playerCardAmountImage2.src = "https://i.ibb.co/KcvmBbgc/uno-back-face.png"
+                playerCardAmountImage2.src = "https://i.ibb.co/KcvmBbgc/uno-back-face.png";
                 playerCardAmountImage2.classList.add("card-amount-image");
                 playerCardAmountImage2.style.transform = "translate(50%,12%) rotateZ(27deg)";
                 playerCardAmountImage2.style.zIndex = "1";
 
-                const playerCardAmount = document.createElement("span")
+                const playerCardAmount = document.createElement("span");
                 playerCardAmount.textContent = player.cards_left;
                 playerCardAmount.classList.add("card-amount");
 
                 playerImage.src = player.avatar;
                 playerImage.classList.add("avatar");
                 playerName.textContent = player.username;
-
-
 
                 playerElement.appendChild(playerCardAmountImage);
                 playerElement.appendChild(playerCardAmountImage2);
@@ -528,15 +528,32 @@ function createPlayers(players){
 
                 playerBody.appendChild(playerElement);
                 playerContainer.appendChild(playerBody);
-            })
+            });
         } else {
             console.log('Failed to get player data');
         }
     })();
+}
 
+function updatePlayerData(playerId, updatedData) {
+    const playerBody = document.querySelector(`.player-body[data-id="${playerId}"]`);
+    if (playerBody) {
+        const playerCardAmount = playerBody.querySelector(".card-amount");
+        const playerName = playerBody.querySelector(".name-tag");
+        const playerImage = playerBody.querySelector(".avatar");
 
-    
-
+        if (updatedData.cards_left !== undefined) {
+            playerCardAmount.textContent = updatedData.cards_left;
+        }
+        if (updatedData.username !== undefined) {
+            playerName.textContent = updatedData.username;
+        }
+        if (updatedData.avatar !== undefined) {
+            playerImage.src = updatedData.avatar;
+        }
+    } else {
+        console.log(`Player with ID ${playerId} not found.`);
+    }
 }
 
 function clearPlayers(){

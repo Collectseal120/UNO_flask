@@ -35,6 +35,7 @@ class Player:
         self.avatar = random.choice(avatars)
         self.hand = []
         self.room = None
+        self.points = 0
 
     def __repr__(self):
         return f"Player({self.username})"
@@ -46,6 +47,7 @@ class Player:
             'avatar': self.avatar,
             "room": self.room,
             "cards_left": len(self.hand),
+            "points": self.points
         }
 
     @staticmethod
@@ -152,7 +154,35 @@ class Game:
             "played_cards": self.played_cards,
             "round_draw_amount": self.round_draw_amount
         }
-        
+    def start_new_round(self):
+        self.deck.reset_deck()
+        self.current_turn = 0
+        self.direction = 1
+        for player in self.room.players:
+            player.hand.clear()
+        self.deal_cards(7)
+
+    def end_round(self):
+        self.played_cards.clear()
+        self.round_draw_amount = 0
+        self.deck.reset_deck()
+        total_points = 0
+        for player in self.room.players:
+            if len(player.hand) > 0:  # Only calculate points for players who lost
+                for card in player.hand:
+                    if card['value'].isdigit():
+                        total_points += int(card['value'])
+                    elif card['value'] in ['skip', 'reverse', 'draw_two']:
+                        total_points += 20
+                    elif card['value'] == 'wild':
+                        total_points += 50
+                    elif card['value'] == 'wild_draw_four':
+                        total_points += 75
+            player.hand.clear()
+        player.points += total_points
+
+        self.start_new_round()
+
 
 
 class Room:
@@ -301,11 +331,17 @@ def handle_play_card(data):
         room.game.played_cards.append(card)
         socketio.emit('card_played', {'player': player.username, 'card': card}, room=room.name)
 
-    # Update the game state and notify players
+
+    socketio.emit('update_hand', room=room.name)
+
+    if len(player.hand) == 0:
+        socketio.emit('round_over', {'winner': player.username}, room=room.name)
+        room.game.end_round()
+        return True
+
     next_player = room.game.next_turn()
     if next_player:
         socketio.emit('next_turn', {'player': next_player.id}, room=room.name)
-    socketio.emit('update_hand', room=room.name)
     return True
 
 
@@ -445,5 +481,5 @@ def get_turn():
 # --------------------------- #
 
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=os.environ.get("PORT", 5000))
-    #socketio.run(app, debug=True)
+    #socketio.run(app, host="0.0.0.0", port=os.environ.get("PORT", 5000))
+    socketio.run(app, debug=True)
