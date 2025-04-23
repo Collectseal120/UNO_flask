@@ -395,7 +395,7 @@ socket.on('next_turn', (data) => {
             playerBody.classList.remove('player-turn');
         }
     });
-    /*(async () => {
+    (async () => {
         const roomData = await getRoomData();
         console.log(roomData);
         if (roomData) {
@@ -403,7 +403,7 @@ socket.on('next_turn', (data) => {
         } else {
             console.log('Failed to get room data');
         }
-    })();*/
+    })();
     fetch('/get_turn', {
         method: 'POST',
         headers: {
