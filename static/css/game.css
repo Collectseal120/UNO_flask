@@ -130,6 +130,41 @@ body {
     z-index: 5;
 }
 
+#sidebar{
+    position: fixed;
+    z-index: 1;
+    top: 1%;
+    right: 0%;
+    background-color: red;
+    border-radius: 5px 0px 0px 5px;
+    height: 98%;
+    width: 40%;
+    transition: cubic-bezier(.65,.05,.36,1);
+    transition-duration: 0.55s;
+}
+
+#sidebar-button{
+    position: absolute;
+    top: 5%;
+    width: 3rem;
+    height: 2rem;
+    align-content: center;
+    transform: translate(-100%);
+    background-color: #f20000;
+    border-radius: 7px 0px 0px 7px;
+}
+#sidebar-button:hover{
+    background-color: #ff6347;
+    cursor: pointer;
+}
+#sidebar-button:active{
+    background-color: #9e3c2a;
+}
+
+#sidebar-content{
+    display: flex;
+    justify-content: center;
+}
 .avatar{
     position: absolute;
     width: 95px;
@@ -162,7 +197,7 @@ body {
     z-index: 0;
     grid-template-areas: "layer";
     place-items: center;
-    background: #185adb;
+    background: #df0000;
     border-radius: 50%;
 
     --radius: 25vmin;
@@ -224,3 +259,30 @@ body {
     font-size: 2rem;
 }
 
+.player-score-table {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: #fff;
+    color: #b22222;
+    font-size: 2vmin;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+
+
+.player-score-table th {
+    background-color: #ff6347;
+    color: white;
+    font-weight: bold;
+}
+
+.player-score-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.player-score-table tr:hover {
+    background-color: #ffe4e1;
+    cursor: pointer;
+}

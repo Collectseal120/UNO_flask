@@ -22,6 +22,38 @@ socket.on('error', (data) => {
     alert(data.message); // Display the error message to the user
 });
 
+socket.on('round_over', (data) => {
+    console.log('Round over:', data);
+    const next_round_button = document.getElementById('next-round');
+    next_round_button.style.display = 'block';
+    const winnerNotification = document.createElement('div');
+    winnerNotification.textContent = `Round Winner: ${data.winner}`;
+    winnerNotification.style.position = 'absolute';
+    winnerNotification.style.top = '50%';
+    winnerNotification.style.left = '50%';
+    winnerNotification.style.transform = 'translate(-50%, -50%)';
+    winnerNotification.style.fontSize = '4rem';
+    winnerNotification.style.fontWeight = 'bold';
+    winnerNotification.style.color = 'white';
+    winnerNotification.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    winnerNotification.style.padding = '20px';
+    winnerNotification.style.borderRadius = '10px';
+    winnerNotification.style.opacity = '1';
+    winnerNotification.style.transition = 'opacity 2s';
+    winnerNotification.style.zIndex = '1000';
+
+    document.body.appendChild(winnerNotification);
+
+    setTimeout(() => {
+        winnerNotification.style.opacity = '0';
+        setTimeout(() => {
+            winnerNotification.remove();
+        }, 2000);
+    }, 3000);
+});
+
+
+
 function rejoinRoom() {
     getHandCards();
     (async () => {
@@ -29,6 +61,7 @@ function rejoinRoom() {
         console.log(roomData);
         if (roomData) {
             createPlayers(roomData.players)
+
             if(roomData.game_started) {
                 const startButton = document.getElementById('start-game');
                 startButton.style.display = 'none';
@@ -36,6 +69,10 @@ function rejoinRoom() {
             roomData.game.played_cards.forEach(card => {
                 createPlayedCard(card);
             });
+            if(!roomData.game.round_active && roomData.game_started){
+                const next_round_button = document.getElementById('next-round');
+                next_round_button.style.display = 'block';
+            }
         } else {
             console.log('Failed to get room data');
         }
@@ -123,6 +160,32 @@ function startGame() {
     });
 }
 document.getElementById('start-game').addEventListener('click', startGame);
+document.getElementById('next-round').addEventListener('click', nextRound);
+
+function nextRound() {
+    fetch('/next_round', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to start round: ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data) {
+            console.log('Round started successfully!');
+            handCards = []
+            clearHandCards();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
 
 socket.on('on_game_start', (data) => {
     const startButton = document.getElementById('start-game');
@@ -192,8 +255,14 @@ async function getRoomData() {
 function updateHandCards(cards){
     const handCardContainer = document.getElementById('hand-cards');
     clearHandCards();
-    cards.forEach(card => {
+    const cardWidth = cards.length*2.75;
+    const totalWidth = cards.length * cardWidth; // Adjust 50 based on the card width and spacing
+    const offset = totalWidth / 2;
+
+    cards.forEach((card, index) => {
         const cardElement = createCardElement(card);
+        cardElement.style.transform = `translate(calc(${offset}px - ${index * cardWidth}px), 0%)`;
+        cardElement.style.zIndex = cards.length - index;
         handCardContainer.appendChild(cardElement);
     });
 }
@@ -202,8 +271,8 @@ const valueImages = {
     'skip': {'center': 'https://i.ibb.co/C5gFNZhf/unos-skip-image.png', 'bottom': 'https://i.ibb.co/C5gFNZhf/unos-skip-image.png', 'top': 'https://i.ibb.co/C5gFNZhf/unos-skip-image.png'},
     'draw_two': {'center': 'https://i.ibb.co/ymXCM9td/uno-plus-2.png', 'bottom': 'https://i.ibb.co/Xfy2sqrt/uno-plus-2-corners.png', 'top': 'https://i.ibb.co/Xfy2sqrt/uno-plus-2-corners.png'},
     'reverse': {'center': 'https://i.ibb.co/3yvn1cXz/uno-reverse.png', 'bottom': 'https://i.ibb.co/3yvn1cXz/uno-reverse.png', 'top': 'https://i.ibb.co/3yvn1cXz/uno-reverse.png'},
-    'wild': {'center': '','bottom': '', 'top':''},
-    'wild_draw_four': {'center': '','bottom': '', 'top':''},
+    'wild': {'center': 'https://i.ibb.co/chJLCJSm/wild-card.png','bottom': 'https://i.ibb.co/chJLCJSm/wild-card.png', 'top':'https://i.ibb.co/chJLCJSm/wild-card.png'},
+    'wild_draw_four': {'center': 'https://i.ibb.co/tT2MFs10/4.png','bottom': 'https://i.ibb.co/D3gpqm4/4-corner.png', 'top':'https://i.ibb.co/D3gpqm4/4-corner.png'},
     '0': {'center': 'https://i.ibb.co/HfyPTRnJ/uno-0.png','bottom': 'https://i.ibb.co/HfyPTRnJ/uno-0.png', 'top':'https://i.ibb.co/HfyPTRnJ/uno-0.png'},
     '1': {'center': 'https://i.ibb.co/VWsY4J1F/uno-1.png', 'bottom': 'https://i.ibb.co/VWsY4J1F/uno-1.png', 'top':'https://i.ibb.co/VWsY4J1F/uno-1.png'},
     '2': {'center': 'https://i.ibb.co/LXy5wNXJ/uno-2.png','bottom': 'https://i.ibb.co/LXy5wNXJ/uno-2.png', 'top':'https://i.ibb.co/LXy5wNXJ/uno-2.png'},
@@ -219,6 +288,7 @@ function createCardElement(card) {
     const cardElement = document.createElement('div');
     cardElement.className = 'card';
     cardElement.style.backgroundColor = colors[card.color]
+
 
     const cardValueImage = document.createElement('img');
     cardValueImage.src = valueImages[card.value].center
@@ -237,6 +307,15 @@ function createCardElement(card) {
 
 
     if (card.isWild) {
+        cardValueImage.style.width = 90 + '%';
+        if(card.value == 'wild_draw_four'){
+            cardValueBottomImage.style.width = 25 + '%';
+            cardValueTopImage.style.width = 25 + '%';
+        }
+        else {
+            cardValueBottomImage.style.width = 20 + '%';
+            cardValueTopImage.style.width = 20 + '%';
+        }
         cardElement.classList.add('wild-card');
         const colorPicker = document.createElement('div');
         colorPicker.className = 'color-picker';
@@ -282,6 +361,8 @@ function createCardElement(card) {
                 card.selectionOrder = selectedCards.length + 1; // Track the order of selection
                 console.log('Card selected:', card);
                 cardElement.classList.add("selected-card")
+                const currentTransform = cardElement.style.transform || '';
+                cardElement.style.transform = `${currentTransform} translate(0px, -80px)`;
             } else {
                 card.isSelected = false;
                 checkbox.checked = false;
@@ -293,6 +374,8 @@ function createCardElement(card) {
             delete card.selectionOrder; // Remove the selection order when deselected
             console.log('Card deselected:', card);
             cardElement.classList.remove("selected-card")
+            const currentTransform = cardElement.style.transform || '';
+                cardElement.style.transform = `${currentTransform} translate(0px, 80px)`;
 
             // Recalculate the selection order for remaining selected cards
             let order = 1;
@@ -321,6 +404,14 @@ document.getElementById('play-card-button').addEventListener('click', function()
     if (selectedCards.length > 0) {
         const selectedOrder = selectedCards.sort((a, b) => a.selectionOrder - b.selectionOrder);
         console.log('Selected cards in order:', selectedOrder);
+
+        // Check if any wild card is selected without a color
+        const invalidWildCard = selectedOrder.find(card => card.isWild && !card.selectedColor);
+        if (invalidWildCard) {
+            console.error('Cannot play a wild card without selecting a color');
+            alert('Please select a color for the wild card before playing.');
+            return;
+        }
 
         socket.emit('play_card', { cards: selectedCards }, (response) => {
             if (response) {
@@ -364,6 +455,19 @@ function createPlayedCard(card){
     cardValueBottomImage.className = 'bottom-right-value';
     cardElement.appendChild(cardValueBottomImage);
 
+    if(card.isWild) {
+    
+        cardValueImage.style.width = 90 + '%';
+        if(card.value == 'wild_draw_four'){
+            cardValueBottomImage.style.width = 25 + '%';
+            cardValueTopImage.style.width = 25 + '%';
+        }
+        else {
+            cardValueBottomImage.style.width = 20 + '%';
+            cardValueTopImage.style.width = 20 + '%';
+        }
+    }
+
     function getRandomOffset(range) {
         return Math.floor(Math.random() * (range * 2 + 1)) - range;
     }
@@ -380,6 +484,28 @@ function createPlayedCard(card){
 socket.on('card_played', (data) => {
     console.log('Card played:', data.card);
     createPlayedCard(data.card);
+    if(data.card.isWild){
+        const wildColorNotification = document.createElement('div');
+        wildColorNotification.textContent = `Wild Color: ${data.card.selectedColor.toUpperCase()}`;
+        wildColorNotification.style.position = 'absolute';
+        wildColorNotification.style.top = '50%';
+        wildColorNotification.style.left = '50%';
+        wildColorNotification.style.transform = 'translate(-50%, -50%)';
+        wildColorNotification.style.fontSize = '3rem';
+        wildColorNotification.style.fontWeight = 'bold';
+        wildColorNotification.style.color = colors[data.card.selectedColor];
+        wildColorNotification.style.opacity = '1';
+        wildColorNotification.style.transition = 'opacity 2s, transform 2s';
+        document.body.appendChild(wildColorNotification);
+
+        setTimeout(() => {
+            wildColorNotification.style.opacity = '0';
+            wildColorNotification.style.transform = 'translate(-50%, -70%)';
+            setTimeout(() => {
+                wildColorNotification.remove();
+            }, 2000);
+        }, 1000);
+    }
 })
 
 socket.on('next_turn', (data) => {
@@ -501,6 +627,7 @@ function createPlayers(players) {
                 playerName.classList.add("name-tag");
 
                 const playerElement = document.createElement("div");
+                //playerElement.style.transform = `scale(${Math.min(window.innerHeight / 100, 1)}) translate(-50%)`;
 
                 const playerCardAmountImage = document.createElement("img");
                 playerCardAmountImage.src = "https://i.ibb.co/KcvmBbgc/uno-back-face.png";
@@ -566,4 +693,130 @@ function clearPlayers(){
 socket.on("player_join_room", (room) => {
     createPlayers(room.players);
 })
+
+
+document.getElementById('sidebar-button').addEventListener('click', function() {
+    const sidebar = document.getElementById('sidebar');
+
+    const sidebarContent = document.getElementById('sidebar-content');
+    if(sidebar.style.transform == 'translateX(100%)'){
+        sidebar.style.transform = 'translateX(0%)';
+        while (sidebarContent.firstChild) {
+            sidebarContent.removeChild(sidebarContent.firstChild);
+        }
+        (async () => {
+            const roomData = await getRoomData();
+            if (roomData) {
+                sidebarContent.appendChild(calculateSidebarTable(roomData));
+            } else {
+                console.log('Failed to get room data');
+            }
+        })();
+    }
+    else{
+        sidebar.style.transform = 'translateX(100%)';
+    }
+});
+
+function calculateSidebarTable(roomData){
+    const sidebarContent = document.getElementById('sidebar-content');
+    const playerTable = document.createElement('table');
+    playerTable.classList.add('player-score-table');
+    const headerRow = document.createElement('tr');
+
+    const pointsRow = document.createElement('tr');
+   
+    const rounds = Object.keys(roomData.game.rounds_played);
+    const players = Object.keys(roomData.game.rounds_played[rounds[0]] || {});
+
+    // Create header row
+    const roundHeader = document.createElement('th');
+    roundHeader.textContent = 'Round';
+    headerRow.appendChild(roundHeader);
+
+    players.forEach(playerId => {
+        const playerHeader = document.createElement('th');
+        const player = roomData.players.find(p => p.id === playerId);
+        playerHeader.textContent = player ? player.username : `Player ${playerId}`;
+        headerRow.appendChild(playerHeader);
+    });
+
+    // Create rows for each round
+    // Add total score row before player names
+    const totalScoreRow = document.createElement('tr');
+    const totalScoreHeader = document.createElement('td');
+    totalScoreHeader.textContent = 'Total Score';
+    totalScoreRow.appendChild(totalScoreHeader);
+
+    players.forEach(playerId => {
+        const totalScoreCell = document.createElement('td');
+        const totalScore = rounds.reduce((sum, round) => {
+            return sum + (roomData.game.rounds_played[round][playerId] || 0);
+        }, 0);
+        totalScoreCell.textContent = totalScore;
+        
+        const maxScore = 500; // Adjust this value based on the expected maximum score
+            const percentage = totalScore / maxScore;
+            let red, green;
+
+            if (percentage <= 0.5) {
+                // Transition from green to yellow
+                red = Math.floor(percentage * 2 * 255);
+                green = 255;
+            } else {
+                // Transition from yellow to red
+                red = 255;
+                green = Math.floor((1 - percentage) * 2 * 255);
+            }
+
+        totalScoreCell.style.backgroundColor = `rgb(${red}, ${green}, 0)`;
+        totalScoreRow.appendChild(totalScoreCell);
+    });
+    
+    playerTable.appendChild(headerRow)
+    playerTable.appendChild(totalScoreRow);
+    
+
+    // Add rows for each round
+    rounds.forEach(round => {
+        const roundRow = document.createElement('tr');
+        const roundCell = document.createElement('td');
+        roundCell.textContent = `Round ${round}`;
+        roundRow.appendChild(roundCell);
+
+        players.forEach(playerId => {
+            const scoreCell = document.createElement('td');
+            const score = roomData.game.rounds_played[round][playerId] || 0;
+            scoreCell.textContent = score;
+
+            // Calculate color based on score
+            const maxScore = 250; // Adjust this value based on the expected maximum score
+            const percentage = score / maxScore;
+            let red, green;
+
+            if (percentage <= 0.5) {
+                // Transition from green to yellow
+                red = Math.floor(percentage * 2 * 255);
+                green = 255;
+            } else {
+                // Transition from yellow to red
+                red = 255;
+                green = Math.floor((1 - percentage) * 2 * 255);
+            }
+
+            scoreCell.style.backgroundColor = `rgb(${red}, ${green}, 0)`;
+
+            roundRow.appendChild(scoreCell);
+        });
+
+        playerTable.appendChild(roundRow);
+    });
+
+    
+
+    return playerTable;
+    
+}
+
+
 

@@ -75,6 +75,8 @@ class Game:
         self.direction = 1  # 1 for clockwise, -1 for counter-clockwise
         self.played_cards = []
         self.round_draw_amount = 0
+        self.round_active = False
+        self.rounds_played = {}
 
     def start_game(self):
         self.room.game_started = True
@@ -84,6 +86,7 @@ class Game:
         for player in self.room.players:
             player.hand.clear()
         self.deal_cards(7)  # Deal 7 cards to each player
+        self.round_active = True
 
     def current_player(self):
         if self.room.players:
@@ -152,7 +155,9 @@ class Game:
             "current_turn": self.current_turn,
             "direction": self.direction,
             "played_cards": self.played_cards,
-            "round_draw_amount": self.round_draw_amount
+            "round_draw_amount": self.round_draw_amount,
+            "round_active": self.round_active,
+            "rounds_played": self.rounds_played,
         }
     def start_new_round(self):
         self.deck.reset_deck()
@@ -161,14 +166,17 @@ class Game:
         for player in self.room.players:
             player.hand.clear()
         self.deal_cards(7)
+        self.round_active = True
 
     def end_round(self):
         self.played_cards.clear()
         self.round_draw_amount = 0
         self.deck.reset_deck()
-        total_points = 0
+        current_round = len(self.rounds_played) + 1
+        self.rounds_played[current_round] = {}
         for player in self.room.players:
-            if len(player.hand) > 0:  # Only calculate points for players who lost
+            total_points = 0
+            if len(player.hand) > 0:
                 for card in player.hand:
                     if card['value'].isdigit():
                         total_points += int(card['value'])
@@ -179,9 +187,11 @@ class Game:
                     elif card['value'] == 'wild_draw_four':
                         total_points += 75
             player.hand.clear()
-        player.points += total_points
+            self.rounds_played[current_round][player.id] = total_points
+            player.points += total_points
+        self.round_active = False
 
-        self.start_new_round()
+        #self.start_new_round()
 
 
 
@@ -295,7 +305,7 @@ def handle_play_card(data):
     if not (card.get('isWild') or 
                 card.get('color') == room.game.played_cards[-1].get('color') or 
                 card.get('value') == room.game.played_cards[-1].get('value') or 
-                (room.game.played_cards[-1].get('isWild') and card.get('color') == room.game.played_cards[-1].get('wildColor'))):
+                (room.game.played_cards[-1].get('isWild') and card.get('color') == room.game.played_cards[-1].get('wildColor'))) or (len(player.hand) == 1 and card.get('isWild')):
             canPlay = False
     if not canPlay:
         return False
@@ -344,8 +354,7 @@ def handle_play_card(data):
         socketio.emit('next_turn', {'player': next_player.id}, room=room.name)
     return True
 
-
-
+    
 # --------------------------- #
 #         HTTP Routes         #
 # --------------------------- #
@@ -439,6 +448,21 @@ def start_game():
     socketio.emit('on_game_start', {'start': True}, room=room.name)
     return jsonify({'message': 'Game started'}), 200
 
+@app.route('/next_round', methods=['POST'])
+def handle_next_round():
+    player = get_current_player()
+    if not player or not player.room or player.room not in rooms:
+        return jsonify({'error': 'Invalid player or room'}), 403
+
+    room = rooms[player.room]
+    if room.game.round_active:
+        return jsonify({'error': 'Round is still active'}), 400
+        return False
+    
+    room.game.start_new_round()
+    socketio.emit('next_round', {'start': True}, room=room.name)
+    return jsonify({'message': 'round started'}), 200
+
 @app.route('/get_hand', methods=['POST'])
 def get_hand():
     player = get_current_player()
@@ -481,5 +505,5 @@ def get_turn():
 # --------------------------- #
 
 if __name__ == '__main__':
-    #socketio.run(app, host="0.0.0.0", port=os.environ.get("PORT", 5000))
-    socketio.run(app, debug=True)
+    socketio.run(app, host="0.0.0.0", port=os.environ.get("PORT", 5000))
+    #socketio.run(app, debug=True)
