@@ -301,6 +301,7 @@ def handle_play_card(data):
 
     # Validate the sequence of selected cards
     canPlay = True
+    play_regular_turn = True
     card = cards[0]
     if not (card.get('isWild') or 
                 card.get('color') == room.game.played_cards[-1].get('color') or 
@@ -325,6 +326,7 @@ def handle_play_card(data):
                     break
         elif card.get('value') == 'skip':
             next_player = room.game.next_turn()
+            play_regular_turn = False
         elif card.get('value') == 'wild_draw_four':
             for _ in range(4):
                 drawn_card = room.game.deck.draw_card()
@@ -349,9 +351,10 @@ def handle_play_card(data):
         room.game.end_round()
         return True
 
-    next_player = room.game.next_turn()
-    if next_player:
-        socketio.emit('next_turn', {'player': next_player.id}, room=room.name)
+    if play_regular_turn:
+        next_player = room.game.next_turn()
+        if next_player:
+            socketio.emit('next_turn', {'player': next_player.id}, room=room.name)
     return True
 
     
