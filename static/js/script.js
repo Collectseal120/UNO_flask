@@ -42,7 +42,7 @@ document.getElementById('create-room-button').addEventListener('click', () => {
     console.log('Create room button clicked');
     const roomName = document.getElementById('room-name').value;
     if (roomName) {
-        socket.emit('create_room', { room_name: roomName });
+        socket.emit('create_room', { room_name: roomName});
     }
 });
 

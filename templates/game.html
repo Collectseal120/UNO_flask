@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UNO</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rooms.css') }}">
 </head>
 <body>
     <main>
@@ -17,8 +18,22 @@
             </div>
         </div>
         <div id="game-container">
-            <button id="start-game">Start</button>
-            <button id="next-round" style="display: none;">Next Round</button>
+            <div id="game-settings">
+                <div id="game-settings-form">
+                    <h3>Game Settings</h3>
+                    <label for="deck-size">Deck Size:</label>
+                    <select id="deck-size" name="deck_size">
+                        <option value="standard">Standard</option>
+                        <option value="jumbo">Jumbo</option>
+                    </select>
+                    <br>
+                    <label for="points-to-lose">Points to Lose:</label>
+                    <input style="width: 92%;" type="number" id="points-to-lose" name="points_to_lose" min="1" value="500">
+                    <button id="start-game">Start</button>
+                </div>
+            </div>
+        </div>
+            <button id="next-round" style="display: none; z-index: 100; position: absolute;">Next Round</button>
             </div>
             <div id="player-container"></div>
             <div id="game-info">

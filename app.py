@@ -77,12 +77,19 @@ class Game:
         self.round_draw_amount = 0
         self.round_active = False
         self.rounds_played = {}
+        self.points_to_lose = 500
+        self.deck_size = 108
 
-    def start_game(self):
+    def start_game(self, deck_size, points_to_lose):
         self.room.game_started = True
+        self.deck_size = deck_size
+        self.points_to_lose = points_to_lose
         self.deck.reset_deck()
         self.current_turn = 0
         self.direction = 1
+        self.round_draw_amount = 0
+        self.round_active = False
+        self.rounds_played = {}
         for player in self.room.players:
             player.hand.clear()
         self.deal_cards(7)  # Deal 7 cards to each player
@@ -158,6 +165,8 @@ class Game:
             "round_draw_amount": self.round_draw_amount,
             "round_active": self.round_active,
             "rounds_played": self.rounds_played,
+            "points_to_lose": self.points_to_lose,
+            "deck_size": self.deck_size,
         }
     def start_new_round(self):
         self.deck.reset_deck()
@@ -190,6 +199,13 @@ class Game:
             self.rounds_played[current_round][player.id] = total_points
             player.points += total_points
         self.round_active = False
+        
+        if any(player.points >= self.points_to_lose for player in self.room.players):
+            winner = min(self.room.players, key=lambda p: p.points)
+            socketio.emit('game_over', {'winner': winner.username}, room=self.room.name)
+            self.room.game_started = False
+            
+            return
 
         #self.start_new_round()
 
@@ -447,8 +463,12 @@ def start_game():
     room = rooms[player.room]
     if room.game_started:
         return jsonify({'error': 'Game already started'}), 400
+    
+    data = request.get_json()
+    deck_size = data.get('deck_size', 108)
+    points_to_lose = int(data.get('points_to_lose', 500))
 
-    room.game.start_game()
+    room.game.start_game(deck_size, points_to_lose)
     socketio.emit('on_game_start', {'start': True}, room=room.name)
     return jsonify({'message': 'Game started'}), 200
 
@@ -509,5 +529,5 @@ def get_turn():
 # --------------------------- #
 
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=os.environ.get("PORT", 5000))
-    #socketio.run(app, debug=True)
+    #socketio.run(app, host="0.0.0.0", port=os.environ.get("PORT", 5000))
+    socketio.run(app, debug=True)

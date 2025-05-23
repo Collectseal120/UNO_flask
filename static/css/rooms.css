@@ -72,6 +72,10 @@ form h3 {
     margin: 0 0 10px;
     color: gold; /* Golden text for the heading */
 }
+form label {
+    margin: 0 0 10px;
+    color: gold;
+}
 
 .bg-filter{
     position: fixed;

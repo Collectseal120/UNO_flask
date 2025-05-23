@@ -26,7 +26,9 @@ socket.on('round_over', (data) => {
     console.log('Round over:', data);
     const next_round_button = document.getElementById('next-round');
     next_round_button.style.display = 'block';
+
     const winnerNotification = document.createElement('div');
+    winnerNotification.id = 'winner-notification';
     winnerNotification.textContent = `Round Winner: ${data.winner}`;
     winnerNotification.style.position = 'absolute';
     winnerNotification.style.top = '50%';
@@ -65,6 +67,8 @@ function rejoinRoom() {
             if(roomData.game_started) {
                 const startButton = document.getElementById('start-game');
                 startButton.style.display = 'none';
+                const gameSettings = document.getElementById('game-settings');
+                gameSettings.style.display = 'none';
             }
             roomData.game.played_cards.forEach(card => {
                 createPlayedCard(card);
@@ -136,11 +140,17 @@ if (drawCardButton) {
 }
 
 function startGame() {
+    const points_to_lose = document.getElementById('points-to-lose').value;
+    const deck_size = document.getElementById('deck-size').value;
     fetch('/start_game', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
-        }
+            'Content-Type': 'application/json'            
+        },
+        body: JSON.stringify({
+            'points_to_lose': points_to_lose,
+            'deck_size': deck_size
+        })
     })
     .then(response => {
         if (!response.ok) {
@@ -190,6 +200,8 @@ function nextRound() {
 socket.on('on_game_start', (data) => {
     const startButton = document.getElementById('start-game');
     startButton.style.display = 'none';
+    const gameSettings = document.getElementById('game-settings');
+    gameSettings.style.display = 'none';
 });
 
 
@@ -755,7 +767,7 @@ function calculateSidebarTable(roomData){
         }, 0);
         totalScoreCell.textContent = totalScore;
         
-        const maxScore = 500; // Adjust this value based on the expected maximum score
+        const maxScore = roomData.game.points_to_lose; // Adjust this value based on the expected maximum score
             const percentage = totalScore / maxScore;
             let red, green;
 
@@ -790,7 +802,7 @@ function calculateSidebarTable(roomData){
             scoreCell.textContent = score;
 
             // Calculate color based on score
-            const maxScore = 250; // Adjust this value based on the expected maximum score
+            const maxScore = roomData.game.points_to_lose / 4; // Adjust this value based on the expected maximum score
             const percentage = score / maxScore;
             let red, green;
 
@@ -820,3 +832,49 @@ function calculateSidebarTable(roomData){
 
 
 
+socket.on('game_over', (data) => {
+    const winnerNotification = document.getElementById('winner-notification');
+    if (winnerNotification) {
+        winnerNotification.remove();
+    }
+    const winnerSign = document.createElement('div');
+    winnerSign.textContent = `Winner: ${data.winner}`;
+    winnerSign.style.position = 'absolute';
+    winnerSign.style.top = '50%';
+    winnerSign.style.left = '50%';
+    winnerSign.style.transform = 'translate(-50%, -50%)';
+    winnerSign.style.fontSize = '5rem';
+    winnerSign.style.fontWeight = 'bold';
+    winnerSign.style.color = 'gold';
+    winnerSign.style.textShadow = '0 0 20px gold, 0 0 30px orange, 0 0 40px red';
+    winnerSign.style.animation = 'float 3s ease-in-out infinite, fadeOut 5s forwards';
+    winnerSign.style.zIndex = '1000';
+
+    document.body.appendChild(winnerSign);
+
+    setTimeout(() => {
+        winnerSign.remove();
+    }, 5000);
+
+    // Add keyframes for animations
+    const styleSheet = document.styleSheets[0];
+    styleSheet.insertRule(`
+    @keyframes float {
+        0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+        50% { transform: translate(-50%, -50%) translateY(-20px); }
+    }`, styleSheet.cssRules.length);
+
+    styleSheet.insertRule(`
+    @keyframes fadeOut {
+        0% { opacity: 1; }
+        100% { opacity: 0; }
+    }`, styleSheet.cssRules.length);
+
+    const startButton = document.getElementById('start-game');
+    startButton.style.display = 'block';
+    const nextRoundButton = document.getElementById('next-round');
+    nextRoundButton.style.display = 'none';
+    const gameSettings = document.getElementById('game-settings');
+    gameSettings.style.display = 'block';
+
+});

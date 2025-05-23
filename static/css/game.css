@@ -141,6 +141,7 @@ body {
     width: 40%;
     transition: cubic-bezier(.65,.05,.36,1);
     transition-duration: 0.55s;
+    z-index: 10000;
 }
 
 #sidebar-button{
@@ -286,3 +287,72 @@ body {
     background-color: #ffe4e1;
     cursor: pointer;
 }
+#game-settings {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+
+#game-settings-form {
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px gold; /* Golden glow effect */
+    width: 300px;
+}
+
+/* Heading styling */
+#game-settings-form h3 {
+    margin: 0 0 10px;
+    color: gold; /* Golden text for the heading */
+    text-align: center;
+}
+
+/* Label styling */
+#game-settings-form label {
+    display: block;
+    margin-bottom: 5px;
+    color: white;
+    font-size: 14px;
+}
+
+/* Select and input field styling */
+#game-settings-form select,
+#game-settings-form input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 2px solid gold;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #b22222;
+    font-size: 16px;
+}
+
+/* Button styling */
+#game-settings-form button {
+    width: 100%;
+    padding: 10px;
+    background-color: gold;
+    border: none;
+    border-radius: 5px;
+    color: #b22222;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+}
+
+#game-settings-form button:hover {
+    background-color: #ffc400; /* Lighter golden color on hover */
+}
+
+#game-settings-form button:active {
+    background-color: #b88d00; /* Darker golden color on active */
+}
+
