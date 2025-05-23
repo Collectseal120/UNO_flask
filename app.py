@@ -354,8 +354,8 @@ def handle_play_card(data):
 
     if play_regular_turn:
         next_player = room.game.next_turn()
-        if next_player:
-            socketio.emit('next_turn', {'player': next_player.id}, room=room.name)
+    if next_player:
+        socketio.emit('next_turn', {'player': next_player.id}, room=room.name)
     return True
 
     
