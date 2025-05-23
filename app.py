@@ -326,6 +326,7 @@ def handle_play_card(data):
                     break
         elif card.get('value') == 'skip':
             next_player = room.game.next_turn()
+            next_player = room.game.next_turn()
             play_regular_turn = False
         elif card.get('value') == 'wild_draw_four':
             for _ in range(4):
