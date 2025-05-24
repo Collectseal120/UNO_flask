@@ -63,6 +63,10 @@ function rejoinRoom() {
         console.log(roomData);
         if (roomData) {
             createPlayers(roomData.players)
+            if(lastRoundPlayedCards.length <= 0){
+                const playedCardsInfoButton = document.getElementById('played-cards-info-button');
+                playedCardsInfoButton.style.display = 'none';
+            }
 
             if(roomData.game_started) {
                 const startButton = document.getElementById('start-game');
@@ -493,9 +497,12 @@ function createPlayedCard(card){
     playedCardContainer.appendChild(cardElement);
 }
 
+let roundCards = [];
+
 socket.on('card_played', (data) => {
     console.log('Card played:', data.card);
     createPlayedCard(data.card);
+    roundCards.push(data.card);
     if(data.card.isWild){
         const wildColorNotification = document.createElement('div');
         wildColorNotification.textContent = `Wild Color: ${data.card.selectedColor.toUpperCase()}`;
@@ -519,8 +526,12 @@ socket.on('card_played', (data) => {
         }, 1000);
     }
 })
-
+let lastRoundPlayedCards = [];
 socket.on('next_turn', (data) => {
+    lastRoundPlayedCards = roundCards;
+    roundCards = [];    
+    const playerCardsInfoButton = document.getElementById('played-cards-info-button');
+    playerCardsInfoButton.style.display = 'block';
     const playerContainer = document.getElementById('player-container')
     const playerBodys = Array.from(playerContainer.children);
 
@@ -878,3 +889,63 @@ socket.on('game_over', (data) => {
     gameSettings.style.display = 'block';
 
 });
+
+
+function createDisplayCard(card){
+    const cardElement = document.createElement('div');
+    cardElement.className = 'card';
+    cardElement.style.backgroundColor = colors[card.color]
+
+    const cardValueImage = document.createElement('img');
+    cardValueImage.src = valueImages[card.value].center
+    cardValueImage.className = 'center-value';
+    cardElement.appendChild(cardValueImage);
+
+    const cardValueTopImage = document.createElement('img');
+    cardValueTopImage.src = valueImages[card.value].top
+    cardValueTopImage.className = 'top-left-value';
+    cardElement.appendChild(cardValueTopImage);
+
+    const cardValueBottomImage = document.createElement('img');
+    cardValueBottomImage.src = valueImages[card.value].bottom
+    cardValueBottomImage.className = 'bottom-right-value';
+    cardElement.appendChild(cardValueBottomImage);
+
+    if(card.isWild) {
+    
+        cardValueImage.style.width = 90 + '%';
+        if(card.value == 'wild_draw_four'){
+            cardValueBottomImage.style.width = 25 + '%';
+            cardValueTopImage.style.width = 25 + '%';
+        }
+        else {
+            cardValueBottomImage.style.width = 20 + '%';
+            cardValueTopImage.style.width = 20 + '%';
+        }
+    }
+
+    return cardElement
+}
+
+document.getElementById('played-cards-info-button').addEventListener('click', function() {
+    const playedCardsInfo = document.getElementById('played-cards-info');
+    const playedCardsInfoButton = document.getElementById('played-cards-info-button');
+    if (playedCardsInfo.style.display === 'none' && lastRoundPlayedCards.length > 0) {
+        playedCardsInfo.style.display = 'flex';
+        playedCardsInfoButton.style.borderRadius = '20px 0px 0px 20px';
+        lastRoundPlayedCards.forEach(card => {
+            const cardElement = createDisplayCard(card);
+            cardElement.style.transform = 'translate(0, 0) scale(0.5)';
+            cardElement.style.zIndex = '10';
+            playedCardsInfo.appendChild(cardElement);
+        });
+    }
+    else if (playedCardsInfo.style.display === 'flex') {
+        playedCardsInfo.style.display = 'none';
+        playedCardsInfoButton.style.borderRadius = '20px';
+        while (playedCardsInfo.firstChild) {
+            playedCardsInfo.removeChild(playedCardsInfo.firstChild);
+        }
+    }
+});
+        

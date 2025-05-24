@@ -356,3 +356,32 @@ body {
     background-color: #b88d00; /* Darker golden color on active */
 }
 
+#played-cards-info-container{
+    position: fixed;
+    bottom: 10vmin;
+    left: 7vmin;
+}
+
+#played-cards-info-button{
+    background-color: #ff0202c9;
+    border-radius: 20px;
+    padding: 0.7rem 1.2rem;
+}
+
+#played-cards-info-button:hover{
+    background-color: #f35555c9;
+    cursor: pointer;
+}
+
+#played-cards-info-button:active{
+    background-color: #9e3c2a;
+}
+#played-cards-info{
+    position: absolute;
+    display: flex;
+    background-color: #ff0202c9;
+    height: 20vmin;
+    align-items: center;
+    top: 0vmin;
+    left: 42px;
+}
