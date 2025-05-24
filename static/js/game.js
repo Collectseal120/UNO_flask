@@ -635,13 +635,16 @@ function createPlayers(players) {
     const offset = offsets[total] || '0.5turn';
     (async () => {
         const playerData = await getPlayerData();
-        console.log("test: ", playerData);
         if (playerData) {
             rotatedPlayers = rotatePlayers(players, playerData.id);
 
             const playerContainer = document.getElementById("player-container");
             playerContainer.style.setProperty('--total', total);
             rotatedPlayers.forEach((player, i) => {
+                // Check if player with same id already exists
+                if (playerContainer.querySelector(`.player-body[data-id="${player.id}"]`)) {
+                    return; // Skip creating this player
+                }
                 const playerBody = document.createElement("div");
                 playerBody.dataset.id = player.id;
                 playerBody.style.setProperty('--r-offset', offset);
@@ -649,6 +652,9 @@ function createPlayers(players) {
                 playerBody.style.setProperty('--i', i + 1);
                 const playerImage = document.createElement("img");
                 const playerName = document.createElement("span");
+                const playerAvatarContainer = document.createElement("div");
+                const playerAvatarOverlay = document.createElement("div");
+                playerAvatarOverlay.classList.add("avatar-overlay");
                 playerName.classList.add("name-tag");
 
                 const playerElement = document.createElement("div");
@@ -669,13 +675,19 @@ function createPlayers(players) {
                 playerCardAmount.classList.add("card-amount");
 
                 playerImage.src = player.avatar;
-                playerImage.classList.add("avatar");
+                playerImage.style.width = '100%';
+                playerImage.style.height = '100%';
+                playerImage.style.borderRadius = '20px';
+                playerAvatarContainer.classList.add("avatar");
+                //playerImage.classList.add("avatar");
                 playerName.textContent = player.username;
-
+                playerAvatarContainer.appendChild(playerAvatarOverlay);
+                playerAvatarContainer.appendChild(playerImage);
                 playerElement.appendChild(playerCardAmountImage);
                 playerElement.appendChild(playerCardAmountImage2);
-                playerElement.appendChild(playerImage);
-                playerElement.appendChild(playerCardAmount);
+                playerElement.appendChild(playerAvatarContainer);
+                //playerElement.appendChild(playerImage);
+                playerAvatarContainer.appendChild(playerCardAmount);
                 playerElement.appendChild(playerName);
 
                 playerBody.appendChild(playerElement);
@@ -951,3 +963,7 @@ document.getElementById('played-cards-info-button').addEventListener('click', fu
     }
 });
         
+socket.on('next_round' , (data) => {
+    const next_round_button = document.getElementById('next-round');
+    next_round_button.style.display = 'none';
+});

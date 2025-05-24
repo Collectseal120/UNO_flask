@@ -72,7 +72,7 @@ class Game:
         self.room = room
         self.deck = Deck()
         self.current_turn = 0
-        self.direction = 1  # 1 for clockwise, -1 for counter-clockwise
+        self.direction = 1
         self.played_cards = []
         self.round_draw_amount = 0
         self.round_active = False
@@ -89,11 +89,10 @@ class Game:
         self.current_turn = 0
         self.direction = 1
         self.round_draw_amount = 0
-        self.round_active = False
         self.rounds_played = {}
         for player in self.room.players:
             player.hand.clear()
-        self.deal_cards(7)  # Deal 7 cards to each player
+        self.deal_cards(7)
         self.round_active = True
 
     def current_player(self):
@@ -203,7 +202,7 @@ class Game:
             player.points += total_points
         self.round_active = False
         self.round_turn_amount += 1
-        if self.round_turn_amount >= len(self.room.players):
+        if self.round_turn_amount > len(self.room.players):
             self.round_turn_amount = 0
         
         if any(player.points >= self.points_to_lose for player in self.room.players):
@@ -487,7 +486,6 @@ def handle_next_round():
     room = rooms[player.room]
     if room.game.round_active:
         return jsonify({'error': 'Round is still active'}), 400
-        return False
     
     room.game.start_new_round()
     socketio.emit('next_round', {'start': True}, room=room.name)
