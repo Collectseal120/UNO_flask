@@ -77,6 +77,7 @@ class Game:
         self.round_draw_amount = 0
         self.round_active = False
         self.rounds_played = {}
+        self.round_turn_amount = 0
         self.points_to_lose = 500
         self.deck_size = 108
 
@@ -176,6 +177,8 @@ class Game:
             player.hand.clear()
         self.deal_cards(7)
         self.round_active = True
+        for i in range(self.round_turn_amount):
+            self.next_turn()
 
     def end_round(self):
         self.played_cards.clear()
@@ -199,6 +202,9 @@ class Game:
             self.rounds_played[current_round][player.id] = total_points
             player.points += total_points
         self.round_active = False
+        self.round_turn_amount += 1
+        if self.round_turn_amount >= len(self.room.players):
+            self.round_turn_amount = 0
         
         if any(player.points >= self.points_to_lose for player in self.room.players):
             winner = min(self.room.players, key=lambda p: p.points)
