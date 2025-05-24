@@ -177,6 +177,8 @@ document.getElementById('start-game').addEventListener('click', startGame);
 document.getElementById('next-round').addEventListener('click', nextRound);
 
 function nextRound() {
+    const nextRoundButton = document.getElementById('next-round');
+    nextRoundButton.style.display = 'none';
     fetch('/next_round', {
         method: 'POST',
         headers: {
