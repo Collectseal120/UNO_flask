@@ -337,6 +337,8 @@ def handle_play_card(data):
         next_player = room.game.next_turn()
     for card in cards:
         if card.get('value') == 'reverse':
+            if len(room.players) == 2:
+                next_player = room.game.next_turn()
             room.game.direction *= -1
         elif card.get('value') == 'draw_two':
             for _ in range(2):
